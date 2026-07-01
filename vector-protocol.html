@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Vector Protocol // ベクター・プロトコル</title>
+<style>
+  :root{
+    --void:#0B1026;
+    --slate:#252A41;
+    --pink:#FF2E63;
+    --cyan:#08D9D6;
+    --yellow:#F9ED69;
+    --text:#E8EAF2;
+    --dim:#8B91AD;
+    --mono:'SF Mono',ui-monospace,'Cascadia Code',Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
+    --jp:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    background:var(--void);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding-bottom:env(safe-area-inset-bottom);
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(8,217,214,.09), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 110%, rgba(255,46,99,.07), transparent),
+      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(8,217,214,.012) 3px, rgba(8,217,214,.012) 4px);
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+  }
+
+  /* ---------- vertical katakana rail ---------- */
+  .rail{
+    position:fixed;top:50%;right:6px;transform:translateY(-50%);
+    writing-mode:vertical-rl;
+    font-family:var(--jp);
+    font-size:10px;letter-spacing:.5em;
+    color:rgba(249,237,105,.28);
+    pointer-events:none;z-index:1;
+    user-select:none;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    padding:calc(env(safe-area-inset-top) + 26px) 20px 18px;
+    position:relative;overflow:hidden;
+  }
+  .scanline{
+    position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--cyan),var(--pink),transparent);
+    animation:scan 3.4s ease-in-out infinite;opacity:.75;
+  }
+  @keyframes scan{0%,100%{transform:translateX(-55%)}50%{transform:translateX(55%)}}
+  .brand{display:flex;align-items:center;gap:12px}
+  .glyph{
+    width:42px;height:42px;flex-shrink:0;
+    display:grid;place-items:center;
+    border:1.5px solid var(--cyan);
+    position:relative;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+    background:rgba(8,217,214,.06);
+  }
+  .glyph svg{width:22px;height:22px}
+  .brand-txt{flex:1;min-width:0}
+  h1{
+    font-family:var(--mono);
+    font-size:19px;letter-spacing:.13em;font-weight:700;
+    display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+  }
+  h1 .v{color:var(--cyan)}
+  h1 .kana{
+    font-family:var(--jp);font-size:10px;font-weight:400;
+    color:var(--yellow);letter-spacing:.3em;
+  }
+  .tagline{
+    font-family:var(--mono);font-size:10px;color:var(--dim);
+    letter-spacing:.22em;text-transform:uppercase;margin-top:4px;
+  }
+  .tagline b{color:var(--pink);font-weight:600}
+  .gear{
+    width:42px;height:42px;flex-shrink:0;
+    background:var(--slate);
+    border:1px solid rgba(249,237,105,.35);
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+    color:var(--yellow);
+    font-size:17px;
+    cursor:pointer;
+    display:grid;place-items:center;
+    transition:border-color .15s;
+  }
+  .gear:active{border-color:var(--yellow)}
+
+  /* ---------- corner-bracket panels ---------- */
+  main{padding:0 20px 60px;max-width:640px;margin:0 auto;position:relative;z-index:2}
+  .panel{
+    background:var(--slate);
+    border:1px solid rgba(8,217,214,.18);
+    padding:20px 18px;
+    margin-bottom:18px;
+    position:relative;
+    clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+  }
+  .panel::before{
+    content:'';position:absolute;top:0;left:0;width:14px;height:14px;
+    border-top:2px solid var(--yellow);border-left:2px solid var(--yellow);
+    clip-path:polygon(0 0,100% 0,0 100%);
+  }
+  .panel-label{
+    font-family:var(--mono);font-size:10px;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--cyan);
+    display:flex;align-items:center;gap:8px;margin-bottom:16px;
+  }
+  .panel-label .jp{
+    font-family:var(--jp);color:var(--yellow);
+    letter-spacing:.2em;font-size:9.5px;
+  }
+  .panel-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(8,217,214,.3),rgba(255,46,99,.2),transparent)}
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  label{
+    display:block;font-size:12.5px;font-weight:600;
+    color:var(--text);margin-bottom:6px;letter-spacing:.02em;
+  }
+  label .opt{color:var(--dim);font-weight:400;font-size:11px;margin-left:5px}
+  label .req{color:var(--pink);margin-left:3px}
+  input,select,textarea{
+    width:100%;
+    background:var(--void);
+    border:1px solid rgba(139,145,173,.28);
+    border-radius:0;
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:15px;
+    padding:11px 13px;
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+    appearance:none;-webkit-appearance:none;
+    clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);
+  }
+  select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2308D9D6' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 13px center;
+    padding-right:36px;
+  }
+  input:focus,select:focus,textarea:focus{
+    border-color:var(--cyan);
+    box-shadow:0 0 0 1px rgba(8,217,214,.35), 0 0 16px rgba(8,217,214,.12);
+  }
+  textarea{resize:vertical;min-height:64px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:380px){.row{grid-template-columns:1fr}}
+
+  /* ---------- fire button ---------- */
+  .fire{
+    width:100%;
+    background:var(--pink);
+    color:#fff;
+    border:none;
+    clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);
+    font-family:var(--mono);
+    font-size:14px;font-weight:700;letter-spacing:.16em;
+    text-transform:uppercase;
+    padding:17px;
+    cursor:pointer;
+    transition:transform .1s;
+    box-shadow:0 0 28px rgba(255,46,99,.4);
+    display:flex;align-items:center;justify-content:center;gap:10px;
+  }
+  .fire .jp{font-family:var(--jp);font-size:11px;font-weight:400;letter-spacing:.25em;color:var(--yellow)}
+  .fire:active{transform:scale(.98)}
+  .fire:disabled{opacity:.55;cursor:wait}
+  .fire:focus-visible{outline:2px solid var(--yellow);outline-offset:3px}
+
+  /* ---------- status strip ---------- */
+  .status{
+    display:flex;justify-content:space-between;align-items:center;
+    margin:10px 2px 0;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--dim);
+  }
+  .status .model-chip{color:var(--yellow)}
+  .status .key-chip{color:var(--cyan)}
+  .status .key-chip.missing{color:var(--pink)}
+
+  /* ---------- loading ---------- */
+  .loading{
+    display:none;text-align:center;padding:36px 0 12px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.2em;
+    color:var(--cyan);text-transform:uppercase;
+  }
+  .loading .jp{display:block;font-family:var(--jp);font-size:10px;color:var(--yellow);letter-spacing:.4em;margin-top:6px}
+  .loading.on{display:block}
+  .loadbar{
+    height:3px;background:rgba(8,217,214,.15);
+    margin:14px auto 0;max-width:220px;overflow:hidden;
+  }
+  .loadbar i{
+    display:block;height:100%;width:40%;
+    background:linear-gradient(90deg,var(--cyan),var(--pink));
+    animation:load 1.1s ease-in-out infinite;
+  }
+  @keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+
+  /* ---------- output ---------- */
+  #output{display:none;margin-top:26px}
+  #output.on{display:block}
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tab{
+    flex:1;
+    background:var(--slate);
+    border:1px solid rgba(139,145,173,.25);
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+    color:var(--dim);
+    font-family:var(--mono);font-size:11.5px;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase;
+    padding:12px;cursor:pointer;transition:all .15s;
+  }
+  .tab.active{
+    border-color:var(--cyan);color:var(--cyan);
+    background:rgba(8,217,214,.08);
+  }
+  .tab:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+  .pitch-card{
+    background:var(--slate);
+    border:1px solid rgba(139,145,173,.2);
+    border-left:3px solid var(--cyan);
+    padding:18px;margin-bottom:14px;
+    clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
+  }
+  .pitch-card h3{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--pink);
+  }
+  .pitch-card h3 .jp{font-family:var(--jp);color:var(--yellow);font-weight:400;margin-left:6px;letter-spacing:.15em}
+  .pitch-card p{
+    font-size:15px;line-height:1.68;color:var(--text);
+    white-space:pre-wrap;
+  }
+  .out-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:10px;gap:10px;
+  }
+  .copy-btn{
+    background:transparent;
+    border:1px solid rgba(8,217,214,.4);
+    color:var(--cyan);
+    font-family:var(--mono);font-size:10.5px;font-weight:600;
+    letter-spacing:.12em;text-transform:uppercase;
+    padding:7px 13px;cursor:pointer;
+    transition:all .15s;white-space:nowrap;
+    clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px);
+  }
+  .copy-btn:active{background:rgba(8,217,214,.15)}
+  .copy-btn.done{border-color:var(--yellow);color:var(--yellow)}
+  .err{
+    display:none;
+    background:rgba(255,46,99,.1);
+    border:1px solid rgba(255,46,99,.4);
+    border-left:3px solid var(--pink);
+    padding:14px 16px;margin-top:18px;
+    font-size:13.5px;color:var(--pink);line-height:1.5;
+  }
+  .err.on{display:block}
+  .regen{
+    width:100%;margin-top:6px;
+    background:transparent;
+    border:1px solid rgba(249,237,105,.35);
+    color:var(--yellow);
+    font-family:var(--mono);font-size:11.5px;font-weight:600;
+    letter-spacing:.14em;text-transform:uppercase;
+    padding:13px;cursor:pointer;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  }
+  .regen:active{background:rgba(249,237,105,.08)}
+
+  /* ---------- settings drawer ---------- */
+  .drawer-veil{
+    display:none;position:fixed;inset:0;z-index:50;
+    background:rgba(11,16,38,.82);
+    backdrop-filter:blur(4px);
+  }
+  .drawer-veil.on{display:block}
+  .drawer{
+    position:fixed;left:0;right:0;bottom:0;z-index:51;
+    background:var(--slate);
+    border-top:2px solid var(--yellow);
+    padding:22px 20px calc(env(safe-area-inset-bottom) + 26px);
+    max-height:85vh;overflow-y:auto;
+    transform:translateY(105%);
+    transition:transform .28s cubic-bezier(.32,.72,.29,1);
+  }
+  .drawer.on{transform:translateY(0)}
+  .drawer-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .drawer-title{
+    font-family:var(--mono);font-size:13px;font-weight:700;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--yellow);
+  }
+  .drawer-title .jp{font-family:var(--jp);font-size:9.5px;color:var(--cyan);display:block;margin-top:4px;letter-spacing:.35em;font-weight:400}
+  .drawer-close{
+    background:transparent;border:1px solid rgba(255,46,99,.4);
+    color:var(--pink);width:34px;height:34px;
+    font-size:15px;cursor:pointer;
+    clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
+  }
+  .model-grid{display:grid;gap:10px;margin-bottom:16px}
+  .model-opt{
+    background:var(--void);
+    border:1px solid rgba(139,145,173,.25);
+    padding:13px 14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+    transition:border-color .15s;
+  }
+  .model-opt.sel{border-color:var(--cyan);background:rgba(8,217,214,.07)}
+  .model-name{font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:.06em}
+  .model-desc{font-size:11px;color:var(--dim);margin-top:3px}
+  .cost-chip{
+    font-family:var(--jp);font-size:10px;letter-spacing:.15em;
+    padding:4px 9px;white-space:nowrap;
+    border:1px solid;
+    clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px);
+  }
+  .cost-low{color:var(--cyan);border-color:rgba(8,217,214,.5)}
+  .cost-mid{color:var(--yellow);border-color:rgba(249,237,105,.5)}
+  .cost-high{color:var(--pink);border-color:rgba(255,46,99,.5)}
+  .hint{
+    font-size:11.5px;color:var(--dim);line-height:1.55;margin-top:8px;
+  }
+  .hint b{color:var(--yellow);font-weight:600}
+  .tokens-row{display:flex;align-items:center;gap:14px;margin-top:4px}
+  .tokens-row input[type=range]{
+    flex:1;appearance:none;-webkit-appearance:none;
+    height:3px;background:rgba(8,217,214,.25);clip-path:none;padding:0;border:none;
+  }
+  .tokens-row input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:22px;height:22px;
+    background:var(--cyan);border:2px solid var(--void);
+    clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+    cursor:pointer;
+  }
+  .tokens-val{
+    font-family:var(--mono);font-size:12px;color:var(--yellow);
+    min-width:52px;text-align:right;
+  }
+  footer{
+    text-align:center;padding:8px 0 30px;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;
+    color:rgba(139,145,173,.5);text-transform:uppercase;
+  }
+  footer .jp{font-family:var(--jp);color:rgba(249,237,105,.35);letter-spacing:.4em}
+</style>
+</head>
+<body>
+
+<div class="rail">電脳営業システム・二一二六</div>
+
+<header>
+  <div class="scanline"></div>
+  <div class="brand">
+    <div class="glyph">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 4l9 16L21 4" stroke="#08D9D6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="20" r="2" fill="#FF2E63"/>
+      </svg>
+    </div>
+    <div class="brand-txt">
+      <h1><span><span class="v">VECTOR</span> PROTOCOL</span><span class="kana">ベクター・プロトコル</span></h1>
+      <div class="tagline">Field pitch engine <b>//</b> Tech-Payments</div>
+    </div>
+    <button class="gear" onclick="toggleDrawer(true)" aria-label="Settings">⚙</button>
+  </div>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="panel-label">Target Intel <span class="jp">標的情報</span></div>
+
+    <div class="field">
+      <label for="bizType">Business type<span class="req">*</span></label>
+      <input id="bizType" type="text" placeholder="Mexican restaurant, used car lot, barbershop..." autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="specifics">Industry specifics <span class="opt">optional</span></label>
+      <input id="specifics" type="text" placeholder="Family-owned, high ticket, food truck, dine-in heavy..." autocomplete="off">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="employees">Employee count <span class="opt">optional</span></label>
+        <select id="employees">
+          <option value="">Unknown</option>
+          <option>1-5</option>
+          <option>6-15</option>
+          <option>16-50</option>
+          <option>50+</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="processor">Current processor <span class="opt">optional</span></label>
+        <select id="processor">
+          <option value="">Unknown</option>
+          <option>Square</option>
+          <option>Clover</option>
+          <option>Toast</option>
+          <option>Stripe</option>
+          <option>PayPal / Zettle</option>
+          <option>Heartland</option>
+          <option>Worldpay</option>
+          <option>First Data / Fiserv</option>
+          <option>Local bank</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="volume">Monthly volume <span class="opt">optional</span></label>
+        <input id="volume" type="text" inputmode="decimal" placeholder="$25,000" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="debitShare">Debit share <span class="opt">optional</span></label>
+        <select id="debitShare">
+          <option value="">Unknown</option>
+          <option>Low (under 30%)</option>
+          <option>Moderate (30-45%)</option>
+          <option>High (45%+)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="financing">Financing structure <span class="opt">optional</span></label>
+      <select id="financing">
+        <option value="">N/A or unknown</option>
+        <option>In-house financing</option>
+        <option>Third-party financing</option>
+        <option>Cash and card only</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="location">Location <span class="opt">optional</span></label>
+      <input id="location" type="text" placeholder="Salem, Keizer, Willamette Valley..." autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="painPoints">Pain points they've mentioned <span class="opt">optional</span></label>
+      <textarea id="painPoints" placeholder="Complained about fees going up, terminal keeps freezing, hates their current rep..."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="rapport">Rapport stage</label>
+      <select id="rapport">
+        <option value="cold">Cold walk-in (first contact)</option>
+        <option value="warm">Warm (talked before, building trust)</option>
+        <option value="hot">Hot (they're ready to see numbers)</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="fire" id="generateBtn" onclick="generate()">Generate Vector <span class="jp">起動</span></button>
+
+  <div class="status">
+    <span class="model-chip" id="statusModel">SONNET 4.6</span>
+    <span class="key-chip" id="statusKey">KEY // BUILT-IN</span>
+  </div>
+
+  <div class="loading" id="loading">
+    Calculating trajectory
+    <span class="jp">軌道計算中</span>
+    <div class="loadbar"><i></i></div>
+  </div>
+
+  <div class="err" id="errBox"></div>
+
+  <div id="output">
+    <div class="tabs">
+      <button class="tab active" id="tabFull" onclick="showTab('full')">Full Pitch</button>
+      <button class="tab" id="tabSections" onclick="showTab('sections')">Sectioned</button>
+    </div>
+
+    <div id="viewFull">
+      <div class="pitch-card">
+        <div class="out-head">
+          <h3>Full delivery <span class="jp">完全版</span></h3>
+          <button class="copy-btn" onclick="copyText(this,'fullText')">Copy</button>
+        </div>
+        <p id="fullText"></p>
+      </div>
+    </div>
+
+    <div id="viewSections" style="display:none">
+      <div class="pitch-card">
+        <div class="out-head">
+          <h3>01 // Opening <span class="jp">開幕</span></h3>
+          <button class="copy-btn" onclick="copyText(this,'secOpening')">Copy</button>
+        </div>
+        <p id="secOpening"></p>
+      </div>
+      <div class="pitch-card" style="border-left-color:var(--pink)">
+        <div class="out-head">
+          <h3>02 // Problem <span class="jp">問題</span></h3>
+          <button class="copy-btn" onclick="copyText(this,'secProblem')">Copy</button>
+        </div>
+        <p id="secProblem"></p>
+      </div>
+      <div class="pitch-card" style="border-left-color:var(--yellow)">
+        <div class="out-head">
+          <h3>03 // Solution <span class="jp">解決</span></h3>
+          <button class="copy-btn" onclick="copyText(this,'secSolution')">Copy</button>
+        </div>
+        <p id="secSolution"></p>
+      </div>
+      <div class="pitch-card" style="border-left-color:var(--cyan)">
+        <div class="out-head">
+          <h3>04 // Close <span class="jp">締結</span></h3>
+          <button class="copy-btn" onclick="copyText(this,'secClose')">Copy</button>
+        </div>
+        <p id="secClose"></p>
+      </div>
+      <div class="pitch-card" style="border-left-color:var(--pink);background:rgba(255,46,99,.05)">
+        <div class="out-head">
+          <h3>⚡ Objections <span class="jp">反論対策</span></h3>
+          <button class="copy-btn" onclick="copyText(this,'secObjections')">Copy</button>
+        </div>
+        <p id="secObjections"></p>
+      </div>
+    </div>
+
+    <button class="regen" onclick="generate()">↻ Regenerate // 再生成</button>
+  </div>
+</main>
+
+<footer>Stellaris Solutions // Tech-Payments Field Ops<br><span class="jp">星々の解決</span></footer>
+
+<!-- ============ SETTINGS DRAWER ============ -->
+<div class="drawer-veil" id="veil" onclick="toggleDrawer(false)"></div>
+<div class="drawer" id="drawer" role="dialog" aria-label="Synapse Engine settings">
+  <div class="drawer-head">
+    <div class="drawer-title">Synapse Engine<span class="jp">神経接続設定</span></div>
+    <button class="drawer-close" onclick="toggleDrawer(false)" aria-label="Close settings">✕</button>
+  </div>
+
+  <div class="field">
+    <label for="apiKey">Anthropic API key <span class="opt">optional inside Claude, required standalone</span></label>
+    <input id="apiKey" type="password" placeholder="sk-ant-..." autocomplete="off" oninput="updateStatus()">
+    <div class="hint">Running inside a Claude artifact? Leave this <b>blank</b>, the connection is handled for you. Running Vector Protocol from your home screen or a browser? Paste your key from console.anthropic.com. The key lives in memory only and clears when you close the app.</div>
+  </div>
+
+  <div class="field" style="margin-top:18px">
+    <label>AI model</label>
+    <div class="model-grid" id="modelGrid">
+      <div class="model-opt" data-model="claude-haiku-4-5-20251001" onclick="selectModel(this)">
+        <div>
+          <div class="model-name">HAIKU 4.5</div>
+          <div class="model-desc">Fastest and cheapest. Good for quick cold walk-ins.</div>
+        </div>
+        <span class="cost-chip cost-low">低 // LOW</span>
+      </div>
+      <div class="model-opt sel" data-model="claude-sonnet-4-6" onclick="selectModel(this)">
+        <div>
+          <div class="model-name">SONNET 4.6</div>
+          <div class="model-desc">The balance point. Sharp pitches, reasonable cost.</div>
+        </div>
+        <span class="cost-chip cost-mid">中 // MID</span>
+      </div>
+      <div class="model-opt" data-model="claude-opus-4-8" onclick="selectModel(this)">
+        <div>
+          <div class="model-name">OPUS 4.8</div>
+          <div class="model-desc">Maximum firepower for high-value targets. Costs the most.</div>
+        </div>
+        <span class="cost-chip cost-high">高 // HIGH</span>
+      </div>
+    </div>
+    <div class="hint">Cost per generation is small either way (a fraction of a cent to a few cents), but it compounds across a full day of door-knocking. Haiku for volume, Sonnet as your daily driver, Opus when the account is worth it.</div>
+  </div>
+
+  <div class="field" style="margin-top:18px">
+    <label for="maxTokens">Response length cap</label>
+    <div class="tokens-row">
+      <input type="range" id="maxTokens" min="500" max="2000" step="100" value="1000" oninput="document.getElementById('tokVal').textContent=this.value">
+      <span class="tokens-val" id="tokVal">1000</span>
+    </div>
+    <div class="hint">Higher cap = longer, more detailed output and slightly higher cost per run. 1000 is the sweet spot for a field pitch.</div>
+  </div>
+</div>
+
+<script>
+let settings = {
+  apiKey: '',
+  model: 'claude-sonnet-4-6',
+  maxTokens: 1000
+};
+
+const MODEL_LABELS = {
+  'claude-haiku-4-5-20251001':'HAIKU 4.5',
+  'claude-sonnet-4-6':'SONNET 4.6',
+  'claude-opus-4-8':'OPUS 4.8'
+};
+
+const INSTRUCTIONS = `You are Vector Protocol, the field pitch engine for Tech-Payments, an Oregon-based credit card processing company. You generate personalized, conversational sales talking points for Quincy Washington, a Solutions Specialist and Oregon Representative prospecting small businesses in person, primarily in the Willamette Valley (Salem, Keizer, and surrounding areas).
+
+TECH-PAYMENTS OFFER (the facts you sell with):
+- Flat rate pricing locked for the LIFE of the account
+- Free terminals (no terminal fees, no equipment leases)
+- Unlimited free trial: merchant can process for a month, and if they don't like it, Tech-Payments picks up the terminals and everyone walks away, no hard feelings
+- Programs lead with Surcharge and Dual Pricing at a $15/month flat fee, shifting processing costs off the merchant
+- KEY RULE: if the shop has high debit share (45% or more), pitch DUAL PRICING, not surcharge. Surcharge cannot be applied to debit cards, so high-debit shops save more with dual pricing. Lower debit share shops can go either way.
+- Square raised its subscription base 69% and raised processing fees another 14% at the start of 2026. Many Square merchants are effectively paying around 5.3% all-in with subscription, terminal, and processing fees. Use these numbers ONLY when the merchant's current processor is Square or unknown-but-likely-Square (small retail and food often use Square).
+- The soft close is always the statement audit: no commitment, just permission to look at what they're actually paying. Takes fifteen minutes.
+
+QUINCY'S SELLING STYLE (match this voice exactly):
+- Rapport first. He builds comfort and trust BEFORE asking for statements. Never pushy, never corporate.
+- Leads with empathy for the owner's reality: tight margins, staff turnover, processing fees as an afterthought.
+- Lets the merchant discover the problem rather than burying them in stats. One or two sharp numbers maximum, deployed at the right moment.
+- Direct, warm, conversational. Sounds like a real person talking, not a script. Contractions, plain language.
+- Leaves a pre-application and flyer with Google reviews on the back as the tangible leave-behind.
+- Never use em-dashes anywhere in the output.
+
+RAPPORT STAGE ADJUSTMENTS:
+- "cold": prioritize warmth, credibility, low pressure. The only goal is the leave-behind and permission for a future conversation. Do NOT push for statements yet.
+- "warm": reference the relationship, go one level deeper on their pain, move toward the statement audit ask.
+- "hot": get to the math. Statement audit or pre-application signature is the goal. Confident, specific, still human.
+
+OUTPUT FORMAT: Respond ONLY with valid JSON. No markdown fences, no preamble, no text outside the JSON object. Exact structure:
+{
+  "fullPitch": "the complete conversational pitch as one continuous delivery, written in first person as Quincy speaking",
+  "sections": {
+    "opening": "the greeting and rapport-building opener",
+    "problem": "how to surface their pain point naturally",
+    "solution": "the Tech-Payments offer framed for THIS business",
+    "close": "the low-pressure next step ask"
+  },
+  "objections": "2-3 likely objections from THIS business type, each formatted as: Objection: ... / Response: ..."
+}
+
+Tailor everything to the specific business type and intel provided. A Mexican restaurant pitch should feel different from a used car lot pitch: different pain points, different rhythms, different examples. Keep the full pitch under 200 words so it's deliverable in under 90 seconds. Keep each section tight. No fluff, no filler, nothing that sounds like a template.`;
+
+function toggleDrawer(open){
+  document.getElementById('veil').classList.toggle('on', open);
+  document.getElementById('drawer').classList.toggle('on', open);
+  if(!open){
+    settings.apiKey = document.getElementById('apiKey').value.trim();
+    settings.maxTokens = parseInt(document.getElementById('maxTokens').value, 10);
+    updateStatus();
+  }
+}
+
+function selectModel(el){
+  document.querySelectorAll('.model-opt').forEach(m => m.classList.remove('sel'));
+  el.classList.add('sel');
+  settings.model = el.dataset.model;
+  updateStatus();
+}
+
+function updateStatus(){
+  settings.apiKey = document.getElementById('apiKey').value.trim();
+  document.getElementById('statusModel').textContent = MODEL_LABELS[settings.model] || settings.model;
+  const keyChip = document.getElementById('statusKey');
+  if(settings.apiKey){
+    keyChip.textContent = 'KEY // PERSONAL';
+    keyChip.classList.remove('missing');
+  } else {
+    keyChip.textContent = 'KEY // BUILT-IN';
+    keyChip.classList.remove('missing');
+  }
+}
+
+function gatherIntel(){
+  const get = id => document.getElementById(id).value.trim();
+  return {
+    businessType: get('bizType'),
+    industrySpecifics: get('specifics'),
+    employeeCount: get('employees'),
+    currentProcessor: get('processor'),
+    monthlyVolume: get('volume'),
+    debitShare: get('debitShare'),
+    financing: get('financing'),
+    location: get('location'),
+    painPoints: get('painPoints'),
+    rapportStage: get('rapport')
+  };
+}
+
+async function generate(){
+  const intel = gatherIntel();
+  const errBox = document.getElementById('errBox');
+  errBox.classList.remove('on');
+
+  if(!intel.businessType){
+    errBox.textContent = 'Business type is required. That is the whole vector.';
+    errBox.classList.add('on');
+    document.getElementById('bizType').focus();
+    return;
+  }
+
+  const btn = document.getElementById('generateBtn');
+  const loading = document.getElementById('loading');
+  const output = document.getElementById('output');
+  btn.disabled = true;
+  loading.classList.add('on');
+  output.classList.remove('on');
+
+  const intelLines = Object.entries(intel)
+    .filter(([k,v]) => v)
+    .map(([k,v]) => `${k}: ${v}`)
+    .join('\n');
+
+  // Instructions embedded in the user message for maximum compatibility
+  // with both the built-in artifact connection and a direct API key.
+  const userContent = INSTRUCTIONS + '\n\n---\n\nGenerate talking points for this prospect:\n' + intelLines;
+
+  const headers = { "Content-Type": "application/json" };
+  if(settings.apiKey){
+    headers["x-api-key"] = settings.apiKey;
+    headers["anthropic-version"] = "2023-06-01";
+    headers["anthropic-dangerous-direct-browser-access"] = "true";
+  }
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: settings.model,
+        max_tokens: settings.maxTokens,
+        messages: [{ role: "user", content: userContent }]
+      })
+    });
+
+    const raw = await response.text();
+    let data;
+    try{ data = JSON.parse(raw); }
+    catch(e){ throw new Error('Unexpected response: ' + raw.slice(0, 140)); }
+
+    if(data.error){
+      throw new Error(data.error.message || JSON.stringify(data.error));
+    }
+    if(!data.content || !Array.isArray(data.content)){
+      throw new Error('Unexpected response shape: ' + raw.slice(0, 140));
+    }
+
+    const text = data.content
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('\n');
+
+    // Extract JSON even if the model wraps it in anything
+    const clean = text.replace(/```json|```/g, '').trim();
+    const start = clean.indexOf('{');
+    const end = clean.lastIndexOf('}');
+    if(start === -1 || end === -1) throw new Error('No pitch data found in response. Try regenerating.');
+    const parsed = JSON.parse(clean.slice(start, end + 1));
+
+    document.getElementById('fullText').textContent = parsed.fullPitch || '';
+    document.getElementById('secOpening').textContent = parsed.sections?.opening || '';
+    document.getElementById('secProblem').textContent = parsed.sections?.problem || '';
+    document.getElementById('secSolution').textContent = parsed.sections?.solution || '';
+    document.getElementById('secClose').textContent = parsed.sections?.close || '';
+    document.getElementById('secObjections').textContent = parsed.objections || '';
+
+    output.classList.add('on');
+    showTab('full');
+    setTimeout(() => output.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+  }catch(err){
+    console.error('Vector Protocol error:', err);
+    let msg = err.message || 'Unknown failure.';
+    if(/401|invalid.*key|authentication/i.test(msg)){
+      msg = 'Authentication failed. Open settings (⚙) and check your API key, or clear it to use the built-in connection inside Claude.';
+    } else if(/failed to fetch|network/i.test(msg)){
+      msg = 'Connection failed. If you are outside the Claude app, you need your own API key in settings (⚙). Otherwise check your signal and retry.';
+    }
+    errBox.textContent = 'Vector failed to compile. ' + msg;
+    errBox.classList.add('on');
+  }finally{
+    btn.disabled = false;
+    loading.classList.remove('on');
+  }
+}
+
+function showTab(which){
+  const full = which === 'full';
+  document.getElementById('viewFull').style.display = full ? 'block' : 'none';
+  document.getElementById('viewSections').style.display = full ? 'none' : 'block';
+  document.getElementById('tabFull').classList.toggle('active', full);
+  document.getElementById('tabSections').classList.toggle('active', !full);
+}
+
+async function copyText(btn, id){
+  const text = document.getElementById(id).textContent;
+  try{
+    await navigator.clipboard.writeText(text);
+    btn.textContent = 'Copied';
+    btn.classList.add('done');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'Copied';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1600);
+  }
+}
+
+updateStatus();
+</script>
+</body>
+</html>
